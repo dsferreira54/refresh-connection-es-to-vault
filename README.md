@@ -14,4 +14,4 @@ The solution to maintain the connection between Hashicorp Vault and External Sec
 2. Adds an annotation to all resources related to External Secrets.
 
 # To do
-Create a customized ClusterRole, is not recommended to give cluster-admin to a service account like this.
+Create a customized ClusterRole, is not recommended to give cluster-admin to a ServiceAccount like this.
