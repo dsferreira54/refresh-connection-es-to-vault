@@ -1,0 +1,40 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: script-refresh-connection-es-to-vault
+data:
+  script-refresh-connection-es-to-vault.sh: |-
+    #!/bin/bash
+
+    ALL_PODS_LIST=$(oc -n $VAULT_PODS_OWNER_NAMESPACE get pods --no-headers -o=custom-columns=":.metadata.ownerReferences[0].apiVersion,:.metadata.ownerReferences[0].kind,:.metadata.ownerReferences[0].name,:.metadata.name,:.status.containerStatuses[0].ready")
+    VAULT_PODS_LIST=$(awk '$1 == "'$VAULT_PODS_OWNER_API_VERSION'" && $2 == "'$VAULT_PODS_OWNER_TYPE'" && $3 == "'$VAULT_PODS_OWNER_NAME'" && $5 == "false" { print }' <<< "$ALL_PODS_LIST")
+    VAULT_PODS_LIST_NAMES=$(awk '{ print $4 }' <<< "$VAULT_PODS_LIST")
+
+    for POD in $VAULT_PODS_LIST_NAMES; do
+        echo "[INFO] Trying to unseal Vault of $POD pod"
+        for var in "${!unseal_key_@}"; do
+            oc -n $VAULT_PODS_OWNER_NAMESPACE exec -it $POD -- vault operator unseal "${!var}"
+        done
+    done
+
+    ALL_CRC_LIST=$(oc get crd --all-namespaces --no-headers -o=custom-columns=":.spec.group,:.spec.names.kind")
+    EXTERNAL_SECRETS_CRC_LIST=$(awk '$1 == "'$EXTERNAL_SECRETS_API_GROUP'" { print }' <<< "$ALL_CRC_LIST")
+    EXTERNAL_SECRETS_CRC_NAMES=$(awk '{ print $2 }' <<< "$EXTERNAL_SECRETS_CRC_LIST")
+
+    for CRC in $EXTERNAL_SECRETS_CRC_NAMES; do
+        echo "[INFO] Annotating every $CRC to refresh External Secrets connection to Hashicorp Vault"
+        TO_REFRESH_RESOURCES=$(oc get $CRC --all-namespaces --no-headers -o=custom-columns=":.metadata.namespace,:.metadata.name")
+        for RESOURCE in "$TO_REFRESH_RESOURCES"; do
+
+            RESOURCE_OBJECT_NAMESPACE=$(awk '{ print $1 }' <<< "$RESOURCE")
+            RESOURCE_OBJECT_NAME=$(awk '{ print $2 }' <<< "$RESOURCE")
+
+            if [[ $RESOURCE_OBJECT_NAMESPACE == "" ]]; then
+                true
+            elif [[ $RESOURCE_OBJECT_NAMESPACE == "<none>" ]]; then
+                oc annotate $CRC --overwrite $RESOURCE_OBJECT_NAME external-secrets-vault-refresh=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            else
+                oc -n $RESOURCE_OBJECT_NAMESPACE annotate $CRC --overwrite $RESOURCE_OBJECT_NAME refresh-connection-es-to-vault=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+            fi
+        done
+    done

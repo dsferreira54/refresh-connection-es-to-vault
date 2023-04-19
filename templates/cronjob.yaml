@@ -1,0 +1,38 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: refresh-connection-es-to-vault
+spec:
+  schedule: "{{ .Values.cronjobs.refreshConnectionEsToVault.schedule }}"
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          name: refresh-connection-es-to-vault
+        spec:
+          restartPolicy: OnFailure
+          serviceAccountName: refresh-connection-es-to-vault
+          volumes:
+          - name: script-refresh-connection-es-to-vault
+            configMap:
+              defaultMode: 420
+              name: script-refresh-connection-es-to-vault
+          containers:
+          - name: refresh-connection-es-to-vault
+            image: quay.io/openshift/origin-jenkins-agent-base:latest
+            imagePullPolicy: IfNotPresent
+            command:
+            - /bin/sh
+            - -c
+            - "source /tmp/script-refresh-connection-es-to-vault.sh"
+            volumeMounts:
+            - mountPath: /tmp/script-refresh-connection-es-to-vault.sh
+              name: script-refresh-connection-es-to-vault
+              subPath: script-refresh-connection-es-to-vault.sh
+            envFrom:
+            - secretRef:
+                name: {{ .Values.cronjobs.refreshConnectionEsToVault.hashicorpVault.credentialsSecret.name }}
+            - configMapRef:
+                name: config-refresh-connection-es-to-vault

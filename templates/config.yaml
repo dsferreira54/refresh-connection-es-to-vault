@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-refresh-connection-es-to-vault
+data:
+  VAULT_PODS_OWNER_NAMESPACE: "{{ .Values.cronjobs.refreshConnectionEsToVault.namespace }}"
+  VAULT_PODS_OWNER_API_VERSION: "{{ .Values.cronjobs.refreshConnectionEsToVault.hashicorpVault.pods.ownerReferences.apiVersion }}"
+  VAULT_PODS_OWNER_TYPE: "{{ .Values.cronjobs.refreshConnectionEsToVault.hashicorpVault.pods.ownerReferences.type }}"
+  VAULT_PODS_OWNER_NAME: "{{ .Values.cronjobs.refreshConnectionEsToVault.hashicorpVault.pods.ownerReferences.name }}"
+  EXTERNAL_SECRETS_API_GROUP: "{{ .Values.cronjobs.refreshConnectionEsToVault.externalSecrets.apiGroup }}"

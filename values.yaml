@@ -1,0 +1,14 @@
+cronjobs:
+  refreshConnectionEsToVault:
+    namespace: vault
+    schedule: "*/1 * * * *"
+    hashicorpVault:
+      credentialsSecret:
+        name: vault-token
+      pods:
+        ownerReferences:
+          apiVersion: apps/v1
+          type: StatefulSet
+          name: vault
+    externalSecrets:
+      apiGroup: external-secrets.io
