@@ -13,7 +13,7 @@ data:
     for POD in $VAULT_PODS_LIST_NAMES; do
         echo "[INFO] Trying to unseal Vault of $POD pod"
         for var in "${!unseal_key_@}"; do
-            oc -n $VAULT_PODS_OWNER_NAMESPACE exec -it $POD -- vault operator unseal "${!var}"
+            oc -n $VAULT_PODS_OWNER_NAMESPACE exec $POD -- vault operator unseal "${!var}"
         done
     done
 
@@ -21,11 +21,11 @@ data:
     EXTERNAL_SECRETS_CRC_LIST=$(awk '$1 == "'$EXTERNAL_SECRETS_API_GROUP'" { print }' <<< "$ALL_CRC_LIST")
     EXTERNAL_SECRETS_CRC_NAMES=$(awk '{ print $2 }' <<< "$EXTERNAL_SECRETS_CRC_LIST")
 
-    for CRC in $EXTERNAL_SECRETS_CRC_NAMES; do
+
+    while read -r CRC; do
         echo "[INFO] Annotating every $CRC to refresh External Secrets connection to Hashicorp Vault"
         TO_REFRESH_RESOURCES=$(oc get $CRC --all-namespaces --no-headers -o=custom-columns=":.metadata.namespace,:.metadata.name")
-        for RESOURCE in "$TO_REFRESH_RESOURCES"; do
-
+        while read -r RESOURCE; do
             RESOURCE_OBJECT_NAMESPACE=$(awk '{ print $1 }' <<< "$RESOURCE")
             RESOURCE_OBJECT_NAME=$(awk '{ print $2 }' <<< "$RESOURCE")
 
@@ -34,7 +34,7 @@ data:
             elif [[ $RESOURCE_OBJECT_NAMESPACE == "<none>" ]]; then
                 oc annotate $CRC --overwrite $RESOURCE_OBJECT_NAME external-secrets-vault-refresh=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
             else
-                oc -n $RESOURCE_OBJECT_NAMESPACE annotate $CRC --overwrite $RESOURCE_OBJECT_NAME refresh-connection-es-to-vault=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+                oc annotate $CRC -n $RESOURCE_OBJECT_NAMESPACE --overwrite $RESOURCE_OBJECT_NAME refresh-connection-es-to-vault=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
             fi
-        done
-    done
+        done <<< "${TO_REFRESH_RESOURCES}"
+    done <<< "${EXTERNAL_SECRETS_CRC_NAMES}"
