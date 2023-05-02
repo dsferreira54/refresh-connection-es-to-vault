@@ -1,7 +1,7 @@
 cronjobs:
   refreshConnectionEsToVault:
     namespace: vault
-    schedule: "*/1 * * * *"
+    schedule: "*/5 * * * *"
     hashicorpVault:
       credentialsSecret:
         name: vault-token
