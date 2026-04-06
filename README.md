@@ -1,4 +1,4 @@
-# CronJob — Refresh Connection — External Secrets to Hashicorp Vault
+# CronJob — Refresh Connection External Secrets to Hashicorp Vault
 
 Helm chart that runs a scheduled job on OpenShift or Kubernetes to address the post-restart issues below. It unseals HashiCorp Vault pods when needed and annotates [External Secrets Operator](https://external-secrets.io/)–related custom resources so their connection to Vault is refreshed.
 
