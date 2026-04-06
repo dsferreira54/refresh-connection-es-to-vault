@@ -22,7 +22,7 @@ On each run the job:
 
 The workload uses the OpenShift CLI (`oc`) from `quay.io/openshift/origin-cli:latest`.
 
-## Prerequisites
+## PrerequisitesRefresh Connection
 
 - Helm 3
 - Cluster where you can install chart resources (CronJob, ConfigMaps, ServiceAccount, RBAC)
@@ -71,4 +71,5 @@ stringData:
   unseal_key_1: "replace-with-first-unseal-key"
   unseal_key_2: "replace-with-second-unseal-key"
   unseal_key_3: "replace-with-third-unseal-key"
+  (...)
 ```
