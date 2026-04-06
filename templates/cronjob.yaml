@@ -22,7 +22,7 @@ spec:
               name: script-refresh-connection-es-to-vault
           containers:
           - name: refresh-connection-es-to-vault
-            image: quay.io/openshift/origin-jenkins-agent-base:latest
+            image: quay.io/openshift/origin-cli:latest
             imagePullPolicy: IfNotPresent
             command:
             - /bin/sh
