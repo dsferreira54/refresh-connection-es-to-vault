@@ -1,6 +1,16 @@
 # CronJob — Refresh Connection — External Secrets to Hashicorp Vault
 
-Helm chart that runs a scheduled job on OpenShift or Kubernetes to keep HashiCorp Vault reachable from [External Secrets Operator](https://external-secrets.io/) after restarts or drift: it unseals Vault pods when needed and annotates External Secrets custom resources so their connection to Vault is refreshed.
+Helm chart that runs a scheduled job on OpenShift or Kubernetes to address the post-restart issues below. It unseals HashiCorp Vault pods when needed and annotates [External Secrets Operator](https://external-secrets.io/)–related custom resources so their connection to Vault is refreshed.
+
+## Problem
+
+When OpenShift is restarted, two things often happen that lead to connection problems:
+
+1. **HashiCorp Vault** becomes unavailable. To bring it back, **every Vault pod must be unsealed**; until that happens, Vault does not serve traffic normally.
+
+2. **External Secrets** **loses its connection to Vault**. The connection will often **recover on its own after several minutes**, but you may need it **sooner**. In that case you can **annotate every External Secrets–related resource** so the operator reloads them and reconnects to Vault immediately instead of waiting.
+
+Doing the unseal and annotation work manually after each restart is slow and error-prone. This chart automates both steps on a schedule.
 
 ## What it does
 
