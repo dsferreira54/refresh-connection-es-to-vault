@@ -4,6 +4,7 @@ metadata:
   name: refresh-connection-es-to-vault
 spec:
   schedule: "{{ .Values.cronjobs.refreshConnectionEsToVault.schedule }}"
+  concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 1
   failedJobsHistoryLimit: 1
   jobTemplate:
